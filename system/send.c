@@ -21,11 +21,11 @@ syscall	send(
 	}
 
 	prptr = &proctab[pid];
-	if (prptr->prhasmsg) {
-		restore(mask);
-		return SYSERR;
+	while (prptr->prhasmsg) {
+		ready(currpid);
 	}
-	prptr->prmsg = msg;		/* Deliver message		*/
+
+	prptr->prmsg = msg;			/* Deliver message		*/	
 	prptr->prhasmsg = TRUE;		/* Indicate message is waiting	*/
 
 	/* If recipient waiting or in timed-wait make it ready */

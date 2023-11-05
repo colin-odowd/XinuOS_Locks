@@ -18,8 +18,8 @@ test_and_set:
 		/* *ptr = new_value; */ 
 
 		movl  12(%ebp), %eax    /* set eax to value from second argument (new_value) */
-		movl  8(%ebp), %ecx     /* set edx to address from first argument (ptr) */
-		xchgl %eax, (%edx) 		/* exchange the values from new_value and ptr */
+		movl  8(%ebp), %ecx     /* set ecx to address from first argument (ptr) */
+		xchgl %eax, (%ecx)		/* exchange the values from new_value and ptr */
 
 		popl %esi				/* restore the old esi register */
 		popl %edi				/* restore the old edi register */

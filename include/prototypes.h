@@ -384,27 +384,21 @@ extern	devcall	ramread(struct dentry *, char *, int32);
 extern	devcall	ramwrite(struct dentry *, char *, int32);
 
 /* in file rdscomm.c */
-
 extern	status	rdscomm(struct rd_msg_hdr *, int32, struct rd_msg_hdr *, int32, struct rdscblk *);
 
 /* in file rdscontrol.c */
-
 extern	devcall	rdscontrol(struct dentry *, int32, int32, int32);
 
 /* in file rdsinit.c */
-
 extern	devcall	rdsinit(struct dentry *);
 
 /* in file rdsopen.c */
-
 extern	devcall	rdsopen(struct dentry *, char *, char *);
 
 /* in file rdsprocess.c */
-
 extern	void	rdsprocess(struct rdscblk *);
 
 /* in file rdsqfcns.c */
-
 extern	struct	rdqnode	* rdqunlink(struct rdscblk *rdptr, struct rdqnode *rptr);
 extern	void	rdqinsert(struct rdscblk *, struct rdqnode *);
 extern	void	rdcunlink(struct rdscblk *, struct rdcnode *);
@@ -413,15 +407,12 @@ extern	void	edqdump(did32);
 extern	void	edcdump(did32);
 
 /* in file rdsread.c */
-
 extern	devcall	rdsread(struct dentry *, char *, int32);
 
 /* in file rdssetprio.c */
-
 extern	pri16	rdssetprio(pri16);
 
 /* in file rdswrite.c */
-
 extern	devcall	rdswrite(struct dentry *, char *, int32);
 
 /* in file sdmcclose.c */
@@ -506,6 +497,7 @@ extern	devcall	rfsopen(struct dentry  *devptr, char *, char *);
 /* in file rfscomm.c */
 extern	int32	rfscomm(struct rf_msg_hdr *, int32,
 			struct rf_msg_hdr *, int32);
+			
 /* in file seek.c */
 extern	syscall	seek(did32, uint32);
 
@@ -536,6 +528,11 @@ extern	syscall	signaln(sid32, int32);
 /* in file sleep.c */
 extern	syscall	sleepms(int32);
 extern	syscall	sleep(int32);
+
+/* in file spinlock.c */
+extern  syscall sl_initlock(sl_lock_t *);
+extern  syscall sl_lock(sl_lock_t *);
+extern  syscall sl_unlock(sl_lock_t *);
 
 /* in file start.S */
 extern	int32	inb(int32);
