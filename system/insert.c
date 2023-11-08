@@ -34,3 +34,41 @@ status	insert(
 	queuetab[curr].qprev = pid;
 	return OK;
 }
+
+/*----------------------------------------------------
+ *  insert_lock -  Insert a process into a FIFO queue 
+ *----------------------------------------------------
+ */
+status	insert_lock(
+	  pid32		pid,    /* ID of process to insert	*/
+	  qid16		q,		/* ID of queue to use		*/
+	  int32		key		/* Key for the inserted process	*/
+	)
+{
+	qid16	curr;			/* Runs through items in a queue*/
+	qid16	prev;			/* Holds previous node index	*/
+	struct	procent *prptr;	
+	prptr = &proctab[pid];
+	prptr->prlockqueue = 1;
+
+	if (isbadqid(q) || isbadpid(pid)) {
+		return SYSERR;
+	}
+
+	curr = firstid(q);
+
+	while (curr != queuetail(q)) {
+		curr = queuetab[curr].qnext;
+	}
+
+	/* Insert PID before the tail of the queue */
+	prev = queuetab[curr].qprev;	/* Get index of previous node	*/
+	queuetab[pid].qnext = curr;
+	queuetab[pid].qprev = prev;
+	queuetab[pid].qkey = key;
+	queuetab[prev].qnext = pid;
+ 	queuetab[curr].qprev = pid;
+
+	//print_lock_list(q);
+	return OK;
+}

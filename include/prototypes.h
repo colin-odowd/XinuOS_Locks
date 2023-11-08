@@ -160,6 +160,7 @@ extern	int32	sizmem(void);
 
 /* in file insert.c */
 extern	status	insert(pid32, qid16, int32);
+extern 	status	insert_lock(pid32, qid16, int32);
 
 /* in file insertd.c */
 extern	status	insertd(pid32, qid16, int32);
@@ -266,6 +267,11 @@ extern	status	lfsetup(struct lflcblk *);
 /* in file lftruncate.c */
 extern	status	lftruncate(struct lflcblk *);
 
+/* in file lock.c */
+extern  syscall initlock(lock_t *);
+extern  syscall lock(lock_t *);
+extern  syscall unlock(lock_t *);
+
 /* in file lpgetc.c */
 extern	devcall	lpgetc(struct dentry *);
 
@@ -323,6 +329,11 @@ extern	syscall	open(did32, char *, char *);
 
 /* in file panic.c */
 extern	void	panic(char *);
+
+/* in file park.c */
+extern	void	park();
+extern	void	unpark(pid32);
+extern 	void 	setpark();
 
 /* in file pci.c */
 extern	int32	pci_init(void);

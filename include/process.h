@@ -51,6 +51,8 @@ struct procent {		/* Entry in the process table		*/
 	pid32	prparent;	/* ID of the creating process		*/
 	umsg32	prmsg;		/* Message sent to this process		*/
 	bool8	prhasmsg;	/* Nonzero iff msg is valid		*/
+	uint32 	prparkflag;	/* Flag for process ready to be parked */
+	uint32 	prlockqueue; /* Process is in the lock queue */
 	int16	prdesc[NDESC];	/* Device descriptors for process	*/
 };
 

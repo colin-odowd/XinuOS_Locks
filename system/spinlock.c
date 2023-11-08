@@ -8,6 +8,7 @@
  */
 syscall sl_initlock(sl_lock_t *l)
 {
+    l->owner = NO_OWNER;
     l->flag = 0;
     return OK;
 }
@@ -23,6 +24,7 @@ syscall sl_unlock(sl_lock_t *l)
 {
     if (l->owner == currpid)
     {
+        l->owner = NO_OWNER;
         l->flag = 0;
         return OK;
     }

@@ -210,6 +210,9 @@ static	void	sysinit()
 
 	readylist = newqueue();
 
+	/* Create a list for processes waiting on sleep&guard lock */
+
+    locklist = newqueue();
 
 	/* initialize the PCI bus */
 

@@ -57,6 +57,8 @@ typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 
 extern	qid16	readylist;	/* global ID for list of ready processes*/
 
+extern 	qid16 	locklist;  /* global ID for list of processes waiting on sleep&guard lock */
+
 #define	MINSTK	400		/* minimum stack size in bytes		*/
 
 #define	CONTEXT	64		/* bytes in a function call context on	*/
@@ -69,6 +71,7 @@ extern	qid16	readylist;	/* global ID for list of ready processes*/
 
 /* Prototypes of I/O functions used throughout the kernel */
 
+syscall	print_lock_list(qid16);
 syscall	kprintf(char *fmt, ...);
 syscall	kputc(byte);
 syscall	kgetc(void);

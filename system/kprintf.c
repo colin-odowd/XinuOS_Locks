@@ -109,3 +109,27 @@ syscall kprintf(char *fmt, ...)
 	va_end(ap);
 	return OK;
 }
+
+/*------------------------------------------------------------------------
+ * print_lock_list  -  print the PIDs of the processes in the lock list 
+ *------------------------------------------------------------------------
+ */
+syscall print_lock_list(qid16 q)
+{
+	qid16	curr;
+
+	curr = firstid(q);
+	if (curr == queuetail(q))
+	{
+		kprintf("No locks in waiting list\n");
+		return OK;
+	}
+	kprintf("Locks in waiting list: ");
+	while (curr != queuetail(q)) 
+	{
+		curr = queuetab[curr].qnext;
+		kprintf("%d ", curr);
+	}
+	kprintf("\n");
+	return OK;
+}
