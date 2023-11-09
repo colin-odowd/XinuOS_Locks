@@ -48,8 +48,6 @@ status	insert_lock(
 	qid16	curr;			/* Runs through items in a queue*/
 	qid16	prev;			/* Holds previous node index	*/
 	struct	procent *prptr;	
-	prptr = &proctab[pid];
-	prptr->prlockqueue = 1;
 
 	if (isbadqid(q) || isbadpid(pid)) {
 		return SYSERR;
@@ -68,6 +66,10 @@ status	insert_lock(
 	queuetab[pid].qkey = key;
 	queuetab[prev].qnext = pid;
  	queuetab[curr].qprev = pid;
+
+	prptr = &proctab[pid];
+	prptr->prlockqueue = 1;
+
 
 	//print_lock_list(q);
 	return OK;

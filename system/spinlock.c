@@ -8,6 +8,9 @@
  */
 syscall sl_initlock(sl_lock_t *l)
 {
+    static uint32 sl_lock_count = 0;
+    if (++sl_lock_count >= NSPINLOCKS) return SYSERR;
+
     l->owner = NO_OWNER;
     l->flag = 0;
     return OK;

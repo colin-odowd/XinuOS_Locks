@@ -8,7 +8,10 @@
  */
 syscall al_initlock(al_lock_t *l)
 {
+    static uint32 active_lock_count = 0;
     static uint32 lock_id = 1;
+
+    if (++active_lock_count >= NALOCKS) return SYSERR;
 
     l->flag = 0;
     l->guard = 0;
@@ -70,6 +73,7 @@ syscall al_lock(al_lock_t *l)
                 }
             }
             kprintf("\n", deadlock_pids[i]);
+            return SYSERR; // CHECK SPEC ON THIS
         }
 
         //print_lock_list(l->q);

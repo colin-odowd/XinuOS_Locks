@@ -19,18 +19,20 @@ syscall initlock(lock_t *l)
 
 syscall lock(lock_t *l)
 {
+    struct	procent *prptr;	
+
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
     if (l->flag == 0) 
     {
-        //kprintf("L %d\n", currpid);
         l->flag = 1; 
         l->guard = 0;
         l->owner = currpid;
     }
     else
     {
-        print_lock_list(l->q);
-        insert_lock(currpid, l->q, 0);
+        enqueue(currpid, l->q);
+        prptr = &proctab[currpid];
+	    prptr->prlockqueue = 1;
         setpark();
         l->guard = 0;
         park();
@@ -46,26 +48,21 @@ syscall unlock(lock_t *l)
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
     if (l->owner == currpid)
     {
-        if (isempty(l->q) == 0)
+        if (isempty(l->q))
         {
-            //kprintf("UE %d\n", currpid);
             l->flag = 0;
         }
         else 
         {
-            //kprintf("UU %d\n", currpid);
+            prptr = &proctab[firstid(l->q)];
             unpark(dequeue(l->q));
-
-            prptr = &proctab[currpid];
             prptr->prlockqueue = 0;
-
         }
         l->guard = 0;
         return OK;
     }
     else 
     {
-        //kprintf("UF %d %d\n", currpid, l->owner);
         l->guard = 0;
         return SYSERR;
     }
