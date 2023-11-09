@@ -36,7 +36,6 @@ pid32	create(
 	}
 
 	prcount++;
-	kprintf("Creating thread: %d\n", pid);
 	prptr = &proctab[pid];
 
 	/* Initialize process table entry for new process */
@@ -55,6 +54,7 @@ pid32	create(
 	prptr->prdesc[0] = CONSOLE;
 	prptr->prdesc[1] = CONSOLE;
 	prptr->prdesc[2] = CONSOLE;
+	prptr->runtime = 0;
 
 	/* Initialize stack as if the process was called		*/
 

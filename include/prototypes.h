@@ -3,6 +3,12 @@ extern	status	_82545EMInit(struct ethcblk *);
 extern	status	_82545EM_read_phy_reg(struct ethcblk *, uint32, uint16 *);
 extern	status	_82545EM_write_phy_reg(struct ethcblk *, uint32, uint16);
 
+/* in file active_lock.c */
+extern	syscall al_initlock(al_lock_t *l);
+extern	syscall al_lock(al_lock_t *l);
+extern	syscall al_unlock(al_lock_t *l);
+extern 	bool8 	al_trylock(al_lock_t *l);
+
 /* in file addargs.c */
 extern	status	addargs(pid32, int32, int32[], int32,char *, void *);
 

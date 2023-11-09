@@ -11,11 +11,10 @@ struct	procent *prptr;
 void park()
 {
     prptr = &proctab[currpid];
-    if (prptr->prparkflag = 1)
+    if (prptr->prparkflag == 1)
     {
-        prptr->prstate == PR_WAIT;
+        resched();
     }
-    resched();
 }
 
 /*------------------------------------------------------
