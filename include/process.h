@@ -53,7 +53,8 @@ struct procent {		/* Entry in the process table		*/
 	bool8	prhasmsg;	/* Nonzero iff msg is valid		*/
 	uint32 	prparkflag;	/* Flag for process ready to be parked */
 	uint32 	prlockqueue; /* Process is in the lock queue */
-	uint32 	prlockid; 	/* ID of the lock a process is waiting on */
+	uint32 	prlockid_holding;   /* ID of the lock a process is holding */
+	uint32 	prlockid_waiting; 	/* ID of the lock a process is waiting on */
 	uint32 	runtime;	/* Amount of time a process has been actively running for */
 	int16	prdesc[NDESC];	/* Device descriptors for process	*/
 };

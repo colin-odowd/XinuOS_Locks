@@ -10,7 +10,7 @@ syscall al_initlock(al_lock_t *l)
 {
     static uint32 active_lock_count = 0;
     static uint32 lock_id = 1;
-
+    
     if (++active_lock_count >= NALOCKS) return SYSERR;
 
     l->flag = 0;
@@ -18,6 +18,9 @@ syscall al_initlock(al_lock_t *l)
     l->owner = NO_OWNER;
     l->id = lock_id++;
     l->q = queuehead(locklist);
+
+    active_lock_array[active_lock_count] = l;
+
     return OK;
 }
 
@@ -28,6 +31,8 @@ syscall al_initlock(al_lock_t *l)
 syscall al_lock(al_lock_t *l)
 {
     struct	procent *prptr;	
+    struct	procent *curr;	
+
     prptr = &proctab[currpid];
 
     uint32  i;
@@ -40,48 +45,60 @@ syscall al_lock(al_lock_t *l)
         l->flag = 1; 
         l->guard = 0;
         l->owner = currpid;
-        prptr->prlockid = NO_LOCK;
+        active_lock_array[l->id] = l;
+
+        prptr->prlockid_holding = l->id;
+        prptr->prlockid_waiting = NO_LOCK;
     }
     else
     {
-        prptr->prlockid = l->id;
-        for (i = 0; i < NPROC; i++)
-        {
-            prptr = &proctab[i];
-            if (prptr->prlockid == currpid)
-            {
-                deadlock_pids[deadlock_count++] = i; 
-            }
-        }
+        /* This PID is going to sleep at this point, need to check queues of other locks to see if
+        they are waiting on this PID */
 
-        if (deadlock_count > 0) 
+        enqueue(currpid, l->q);
+        prptr = &proctab[currpid];
+	    prptr->prlockqueue = 1;
+        prptr->prlockid_waiting = l->id;
+
+        if (prptr->prlockid_holding != NO_LOCK)
         {
-            kprintf("deadlock_detected=");
-            for (i = 0; i < deadlock_count; i++)
+            
+            for (i = 0; i < NPROC; i++)
             {
-                if (currpid < deadlock_pids[i])
+                curr = &proctab[i];
+                if ((curr->prlockid_waiting == prptr->prlockid_holding) &&  
+                    (i != currpid))
                 {
-                    kprintf("P%d-", currpid);
-                }
-                else if (i == (deadlock_count-1))
-                {
-                    kprintf("P%d", deadlock_pids[i]);
-                }
-                else 
-                {
-                    kprintf("P%d-", deadlock_pids[i]);
+                    deadlock_pids[deadlock_count++] = i; 
                 }
             }
-            kprintf("\n", deadlock_pids[i]);
-            return SYSERR; // CHECK SPEC ON THIS
-        }
 
-        //print_lock_list(l->q);
-        insert_lock(currpid, l->q, 0);        
+            if (deadlock_count > 0) 
+            {
+                kprintf("deadlock_detected=");
+                for (i = 0; i < deadlock_count; i++)
+                {
+                    if (i == (deadlock_count-1))
+                    {
+                        kprintf("P%d", deadlock_pids[i]);
+                    }
+                    else 
+                    {
+                        kprintf("P%d-", deadlock_pids[i]);
+                    }
+                    
+                    kprintf("-P%d", currpid);
+
+                }
+                kprintf("\n", deadlock_pids[i]);
+                return OK; 
+            }
+        }
         setpark();
         l->guard = 0;
         park();
         l->owner = currpid;
+        active_lock_array[(l->id)-1] = l;
     }
     return OK;
 }
@@ -92,22 +109,41 @@ syscall al_lock(al_lock_t *l)
  */
 syscall al_unlock(al_lock_t *l)
 {
-    struct	procent *prptr;	
+    uint32  i;
+    struct	procent *prptr;
+    prptr = &proctab[currpid];
 
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
     if (l->owner == currpid)
     {
-        if (isempty(l->q) == 0)
+        for (i = NALOCKS; i > 0; i--)
+        {
+            if ((active_lock_array[i]->owner == currpid) &&
+                (active_lock_array[i] != NULL))
+            {
+                prptr->prlockqueue = 0;
+                prptr->prlockid_holding = i;
+                prptr->prlockid_waiting = NO_LOCK;
+            }
+        }
+
+        if (isempty(l->q))
         {
             l->flag = 0;
+            l->owner = NO_LOCK;
+            active_lock_array[l->id] = l;
+
+            prptr->prlockid_holding = NO_LOCK;
+            prptr->prlockqueue = 0;
+            prptr->prlockid_waiting = NO_LOCK;
         }
         else 
         {
+            prptr = &proctab[firstid(l->q)];
             unpark(dequeue(l->q));
-
-            prptr = &proctab[currpid];
             prptr->prlockqueue = 0;
-
+            prptr->prlockid_holding = l->id;
+            prptr->prlockid_waiting = NO_LOCK;
         }
         l->guard = 0;
         return OK;
