@@ -23,7 +23,7 @@ void run_for_ms(uint32 time){
 }
 
 process p2(al_lock_t *l1, al_lock_t *l2){
-//	sync_printf("P%d:: acquiring: l1=%d l2=%d\n", currpid, l1->id, l2->id);	
+	sync_printf("P%d:: acquiring: l1=%d l2=%d\n", currpid, l1->id, l2->id);	
 	al_lock(l1);
 	run_for_ms(1000);
 	al_lock(l2);		

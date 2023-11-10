@@ -1,7 +1,6 @@
 /* lock.h */
 
-#define NO_OWNER (-1)
-#define NO_LOCK 0
+#define NO_LOCK (-1)
 #define NSPINLOCKS 20
 #define NLOCKS 20   
 #define NALOCKS 20

@@ -12,7 +12,7 @@ syscall initlock(lock_t *l)
 {
     l->flag = 0;
     l->guard = 0;
-    l->owner = NO_OWNER;
+    l->owner = NO_LOCK;
     l->q = queuehead(locklist);
     return OK;
 }
