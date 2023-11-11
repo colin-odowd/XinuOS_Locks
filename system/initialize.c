@@ -11,6 +11,8 @@ extern	void	*_end;		/* End of Xinu code			*/
 /* Function prototypes */
 
 extern	void main(void);	/* Main is the first process created	*/
+extern	void main_deadlock(void);	/* Main_deadlock is the first process created	*/
+
 static	void sysinit(); 	/* Internal system initialization	*/
 extern	void meminit(void);	/* Initializes the free memory list	*/
 local	process startup(void);	/* Process to finish startup tasks	*/

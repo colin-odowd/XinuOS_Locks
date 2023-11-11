@@ -41,6 +41,8 @@ pid32	create(
 	/* Initialize process table entry for new process */
 	prptr->prstate = PR_SUSP;	/* Initial state is suspended	*/
 	prptr->prprio = priority;
+	prptr->prprio_base = priority; 
+	prptr->prprio_updated = 0;
 	prptr->prstkbase = (char *)saddr;
 	prptr->prstklen = ssize;
 	prptr->prname[PNMLEN-1] = NULLCH;
@@ -56,7 +58,6 @@ pid32	create(
 	prptr->prdesc[2] = CONSOLE;
 	prptr->runtime = 0;
 	prptr->prlockqueue = 0; /* Process is in the lock queue */
-	prptr->prlockid_holding = NO_LOCK;   /* ID of the lock a process is holding */
 	prptr->prlockid_waiting = NO_LOCK; 	/* ID of the lock a process is waiting on */
 
 	/* Initialize stack as if the process was called		*/

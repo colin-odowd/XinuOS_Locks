@@ -3,6 +3,7 @@
         "kernel.h": "c",
         "conf.h": "c",
         "xinu.h": "c",
-        "prototypes.h": "c"
+        "prototypes.h": "c",
+        "process.h": "c"
     }
 }

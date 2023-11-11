@@ -2,6 +2,9 @@
 
 #include <xinu.h>
 
+intmask	mask; 
+uint32 deadlock_detected = 0;    
+
 /*----------------------------------------------------------
  *  al_initlock  -  Initialize the active lock variant 
  *----------------------------------------------------------
@@ -19,7 +22,9 @@ syscall al_initlock(al_lock_t *l)
     l->id = lock_id++;
     l->q = queuehead(locklist);
 
+    mask = disable();
     active_lock_array[active_lock_count] = l;
+    restore(mask);
 
     return OK;
 }
@@ -48,9 +53,9 @@ syscall al_lock(al_lock_t *l)
         l->flag = 1; 
         l->guard = 0;
         l->owner = currpid;
+        mask = disable();
         active_lock_array[l->id] = l;
-
-        prptr->prlockid_holding = l->id;
+        restore(mask);
         prptr->prlockid_waiting = NO_LOCK;
     }
     else
@@ -59,14 +64,36 @@ syscall al_lock(al_lock_t *l)
         prptr = &proctab[currpid];
 	    prptr->prlockqueue = 1;
         prptr->prlockid_waiting = l->id;
+        
+        mask = disable();
+        //uint32 visited[NPROC] = {0}; 
+        //uint32 holding = 0;  
+        
+        // for (i = 0; i < NALOCKS; i++)
+        // {
+        //     if (currpid == active_lock_array[i]->owner) holding = 1;
+        // } 
 
         while ((prptr->prlockid_waiting != NO_LOCK) && 
-               (temp_pid != currpid))
+               (temp_pid != currpid))// &&
+               //(holding == 1))
         {   
+            //if (currpid >= 22) kprintf("%d\n", temp_pid);
             lock_id =  prptr->prlockid_waiting;
             temp_pid = active_lock_array[lock_id]->owner;
-            prptr = &proctab[temp_pid]; 
 
+            // if ((temp_pid != NO_PID) && 
+            //     (visited[temp_pid] == 1))
+            // {
+            //     break; 
+            // }
+
+            // if (temp_pid != NO_PID) 
+            // {
+            //     visited[temp_pid] = 1;
+            // }            
+
+            prptr = &proctab[temp_pid]; 
             if (temp_pid != currpid) 
             {
                 deadlock_pids[deadlock_count++] = temp_pid;
@@ -97,12 +124,11 @@ syscall al_lock(al_lock_t *l)
             if (!currpid_first) kprintf("P%d", currpid);
             kprintf("\n");
         }
-
+        
         setpark();
         l->guard = 0;
         park();
-        l->owner = currpid;
-        active_lock_array[l->id] = l;
+        restore(mask);
     }
     return OK;
 }
@@ -119,25 +145,26 @@ syscall al_unlock(al_lock_t *l)
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
     if (l->owner == currpid)
     {
+        //if (currpid == 5) kprintf("C\n");
         if (isempty(l->q))
         {
             l->flag = 0;
             l->owner = NO_LOCK;
+            mask = disable();
             active_lock_array[l->id] = l;
+            restore(mask);
             prptr->prlockqueue = 0;
-            prptr->prlockid_holding = NO_LOCK;
-            prptr->prlockid_waiting = NO_LOCK;
         }
         else 
         {
             prptr->prlockqueue = 0;
             prptr->prlockid_waiting = NO_LOCK;  
-
             prptr = &proctab[firstid(l->q)];
+            l->owner = currpid;
+            mask = disable();
+            active_lock_array[l->id] = l;
             unpark(dequeue(l->q));
-            prptr->prlockqueue = 0;
-            prptr->prlockid_holding = l->id;
-            prptr->prlockid_waiting = NO_LOCK;
+            restore(mask);
         }
         l->guard = 0;
         return OK;
@@ -156,7 +183,6 @@ syscall al_unlock(al_lock_t *l)
 bool8 al_trylock(al_lock_t *l)
 {
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
-    
     if (l->flag == 1) 
     {
         l->guard = 0;
@@ -166,7 +192,9 @@ bool8 al_trylock(al_lock_t *l)
     {
         l->flag = 1; 
         l->owner = currpid;
+        mask = disable();
         active_lock_array[l->id] = l;
+        restore(mask);
         l->guard = 0;
         return TRUE;
     }
