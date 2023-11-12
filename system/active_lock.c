@@ -23,7 +23,7 @@ syscall al_initlock(al_lock_t *l)
     l->q = queuehead(locklist);
 
     mask = disable();
-    active_lock_array[active_lock_count] = l;
+    active_lock_array[l->id] = l;
     restore(mask);
 
     return OK;
@@ -51,12 +51,12 @@ syscall al_lock(al_lock_t *l)
     if (l->flag == 0) 
     {
         l->flag = 1; 
-        l->guard = 0;
         l->owner = currpid;
         mask = disable();
         active_lock_array[l->id] = l;
         restore(mask);
         prptr->prlockid_waiting = NO_LOCK;
+        l->guard = 0;
     }
     else
     {
@@ -64,34 +64,22 @@ syscall al_lock(al_lock_t *l)
         prptr = &proctab[currpid];
 	    prptr->prlockqueue = 1;
         prptr->prlockid_waiting = l->id;
-        
-        mask = disable();
-        //uint32 visited[NPROC] = {0}; 
-        //uint32 holding = 0;  
-        
-        // for (i = 0; i < NALOCKS; i++)
-        // {
-        //     if (currpid == active_lock_array[i]->owner) holding = 1;
-        // } 
 
-        while ((prptr->prlockid_waiting != NO_LOCK) && 
-               (temp_pid != currpid))// &&
-               //(holding == 1))
+        mask = disable();
+        while (((prptr->prlockid_waiting != NO_LOCK) && 
+                (temp_pid != currpid)) &&
+                (temp_pid != (NPROC+1)))
         {   
-            //if (currpid >= 22) kprintf("%d\n", temp_pid);
             lock_id =  prptr->prlockid_waiting;
             temp_pid = active_lock_array[lock_id]->owner;
 
-            // if ((temp_pid != NO_PID) && 
-            //     (visited[temp_pid] == 1))
-            // {
-            //     break; 
-            // }
-
-            // if (temp_pid != NO_PID) 
-            // {
-            //     visited[temp_pid] = 1;
-            // }            
+            for(i = 0; i < deadlock_count; i++) 
+            {
+                if (temp_pid == deadlock_pids[i]) 
+                {
+                    temp_pid = NPROC+1;
+                }
+            }
 
             prptr = &proctab[temp_pid]; 
             if (temp_pid != currpid) 
@@ -124,11 +112,12 @@ syscall al_lock(al_lock_t *l)
             if (!currpid_first) kprintf("P%d", currpid);
             kprintf("\n");
         }
-        
+
+        restore(mask);
         setpark();
         l->guard = 0;
         park();
-        restore(mask);
+
     }
     return OK;
 }
@@ -156,6 +145,15 @@ syscall al_unlock(al_lock_t *l)
         }
         else 
         {
+            // if (currpid >= 22)
+            // {
+            //     int i;
+            //     for (i=0; i<NALOCKS; i++)
+            //     {
+            //         kprintf("Lock: %d %d %d\n", active_lock_array[i]->id, active_lock_array[i]->owner, currpid);
+            //     }
+            // }
+
             prptr->prlockqueue = 0;
             prptr->prlockid_waiting = NO_LOCK;  
             prptr = &proctab[firstid(l->q)];

@@ -23,6 +23,7 @@ struct al_lock_t {
     uint32 flag;
     uint32 guard;
     uint32 id;
+    uint32 deadlocked;
     pid32 owner;
     qid16 q;
 };
