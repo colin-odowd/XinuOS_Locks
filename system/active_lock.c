@@ -145,7 +145,6 @@ syscall al_unlock(al_lock_t *l)
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
     if (l->owner == currpid)
     {
-        //if (currpid == 5) kprintf("C\n");
         if (isempty(l->q))
         {
             l->flag = 0;
@@ -160,7 +159,7 @@ syscall al_unlock(al_lock_t *l)
             prptr->prlockqueue = 0;
             prptr->prlockid_waiting = NO_LOCK;  
             prptr = &proctab[firstid(l->q)];
-            l->owner = currpid;
+            l->owner = firstid(l->q);
             mask = disable();
             active_lock_array[l->id] = l;
             unpark(dequeue(l->q));
