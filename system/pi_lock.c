@@ -24,7 +24,7 @@ syscall pi_initlock(pi_lock_t *l)
     l->q = queuehead(locklist);
 
     mask = disable();
-    pi_lock_array[pi_lock_count] = l;
+    pi_lock_array[l->id] = l;
     restore(mask);
 
     return OK;
@@ -46,17 +46,17 @@ syscall pi_lock(pi_lock_t *l)
     qid16	curr;
     uint32  lock_owner;
     pri16   prev_prio;
-
+    
     while (test_and_set(&l->guard, 1) == 1) sleepms(QUANTUM);
     if (l->flag == 0) 
     {
         l->flag = 1; 
-        l->guard = 0;
         l->owner = currpid;
         mask = disable();
         pi_lock_array[l->id] = l;
         restore(mask);
         prptr->prlockid_waiting = NO_LOCK;
+        l->guard = 0;
     }
     else
     {
@@ -129,7 +129,6 @@ syscall pi_unlock(pi_lock_t *l)
             update_priority(currpid);
             unpark(dequeue(l->q));
             restore(mask);
-
         }
 
         l->guard = 0;

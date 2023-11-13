@@ -17,7 +17,6 @@ void park()
     {
         prptr = &proctab[currpid];
         prptr->prstate = PR_WAIT;
-        getitem(currpid);
         prptr->prparkflag = 0;
         resched();
     }

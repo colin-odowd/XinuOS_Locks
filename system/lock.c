@@ -25,8 +25,8 @@ syscall lock(lock_t *l)
     if (l->flag == 0) 
     {
         l->flag = 1; 
-        l->guard = 0;
         l->owner = currpid;
+        l->guard = 0;
     }
     else
     {

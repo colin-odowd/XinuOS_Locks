@@ -114,9 +114,11 @@ syscall al_lock(al_lock_t *l)
         }
 
         restore(mask);
+        getitem(currpid);
         setpark();
         l->guard = 0;
         park();
+
 
     }
     return OK;
@@ -145,15 +147,6 @@ syscall al_unlock(al_lock_t *l)
         }
         else 
         {
-            // if (currpid >= 22)
-            // {
-            //     int i;
-            //     for (i=0; i<NALOCKS; i++)
-            //     {
-            //         kprintf("Lock: %d %d %d\n", active_lock_array[i]->id, active_lock_array[i]->owner, currpid);
-            //     }
-            // }
-
             prptr->prlockqueue = 0;
             prptr->prlockid_waiting = NO_LOCK;  
             prptr = &proctab[firstid(l->q)];
